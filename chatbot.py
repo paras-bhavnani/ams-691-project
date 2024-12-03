@@ -6,6 +6,18 @@ from dotenv import load_dotenv
 from db import init_db, insert_user, insert_login, validate_login, insert_log, get_user_data
 from gradio_modal import Modal
 import hashlib
+import requests
+
+def get_fitbit_data(user_id, date, data_type):
+    base_url = 'http://localhost:5000/api/user'
+    url = f'{base_url}/{user_id}/{data_type}/date/{date}'
+    try:
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+        return response.json()
+    except requests.RequestException as e:
+        logging.error(f"Error fetching Fitbit data: {e}")
+        return None
 
 
 # Initialize the database when starting the app
@@ -33,6 +45,12 @@ def get_response(message, history):
     # Fetch user data
     # user_info, log_info = get_user_data(logged_in_email)
     # user_summary = summarize_user_data(user_info, log_info)
+    if "fitbit" in message.lower():
+        # Extract user_id and date from the message
+        user_id = "1503960366"  # Example user_id
+        date = "2016-04-12"  # Example date
+        return handle_fitbit_query(user_id, date)
+
 
     formatted_chat_history = [
         {
@@ -142,6 +160,30 @@ def submit_and_close(daily_bp, daily_food):
 #     summary = f"User Profile: BMI= {bmi} Activity Level= {activity_level}, Goal of the user is= {goal}, Food Habits: {food_habits}\n"
 #     summary += f"Meal and Blood Pressure on ({log_date}): BP: {bp}, Meal: {recent_food}"
 #     return summary
+
+def handle_fitbit_query(user_id, date):
+    activity_data = get_fitbit_data(user_id, date, 'activities')
+    sleep_data = get_fitbit_data(user_id, date, 'sleep')
+    heart_rate_data = get_fitbit_data(user_id, date, 'heart')
+    
+    response = f"On {date}:\n"
+    
+    if activity_data:
+        response += f"- You took {activity_data.get('TotalSteps', 'N/A')} steps\n"
+    else:
+        response += "- Activity data not available\n"
+    
+    if sleep_data:
+        response += f"- You slept for {sleep_data.get('totalMinutesAsleep', 'N/A')} minutes\n"
+    else:
+        response += "- Sleep data not available\n"
+    
+    if heart_rate_data:
+        response += f"- Your resting heart rate was {heart_rate_data.get('restingHeartRate', 'N/A')} bpm"
+    else:
+        response += "- Heart rate data not available"
+    
+    return response
 
 def main():
     with gr.Blocks() as app:

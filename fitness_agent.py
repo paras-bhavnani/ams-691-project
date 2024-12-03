@@ -9,7 +9,7 @@ class FitnessAgent:
 
         self.agent = Agent(
             openai_api_key=self.openai_api_key,
-            functions=[self.get_nutritional_info, self.calculate_bmr, self.calculate_tdee, self.calculate_ibw, self.calculate_bmi, self.calculate_calories_to_lose_weight]
+            functions=[self.get_nutritional_info, self.calculate_bmr, self.calculate_tdee, self.calculate_ibw, self.calculate_bmi, self.calculate_calories_to_lose_weight]#, self.handle_user_activity_data]
         )
 
     def get_nutritional_info(self, query: str) -> dict:
@@ -104,7 +104,43 @@ class FitnessAgent:
                 return 45.5 + 2.3 * (height - 60)
         else:
             raise ValueError("Invalid gender. Expected 'male' or 'female'.")
+        
+    def handle_user_activity_data(self, user_id: str, date: str) -> str:
+        """Process and return user activity data
 
+        :param user_id: The unique identifier for the user
+        :param date: The date for which to fetch smartwatch data
+        :return: A summary of the user's smartwatch data for the specified date
+        """
+        activity_data = self.get_fitbit_data(user_id, date, 'activities')
+        sleep_data = self.get_fitbit_data(user_id, date, 'sleep')
+        heart_rate_data = self.get_fitbit_data(user_id, date, 'heart')
+        
+        summary = f"On {date}:\n"
+        summary += f"- Steps: {activity_data.get('TotalSteps', 'N/A')}\n"
+        summary += f"- Sleep: {sleep_data.get('totalMinutesAsleep', 'N/A')} minutes\n"
+        summary += f"- Resting Heart Rate: {heart_rate_data.get('restingHeartRate', 'N/A')} bpm"
+        
+        return summary
+
+    def get_fitbit_data(self, user_id: str, date: str, data_type: str) -> dict:
+        """Fetch Fitbit data from the mock API.
+
+        :param user_id: The unique identifier for the user
+        :param date: The date for which to fetch data
+        :param data_type: The type of data to fetch (activities, sleep, or heart)
+        :return: A dictionary containing the requested Fitbit data, or None if the request fails
+        """
+        base_url = 'http://localhost:5000/api/user'
+        url = f'{base_url}/{user_id}/{data_type}/date/{date}'
+        try:
+            response = requests.get(url, timeout=5)
+            response.raise_for_status()
+            return response.json()
+        except requests.RequestException as e:
+            # logging.error(f"Error fetching Fitbit data: {e}")
+            return None
+        
     def ask(self, question: str):
         response = self.agent.ask(question)
         return response

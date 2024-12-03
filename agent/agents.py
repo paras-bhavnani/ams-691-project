@@ -24,7 +24,7 @@ class Agent:
     def __init__(
         self,
         openai_api_key: str,
-        model_name: str = 'gpt-4o-mini',
+        model_name: str = 'gpt-4-0613',
         functions: Optional[list] = None
     ):
         openai.api_key = openai_api_key
