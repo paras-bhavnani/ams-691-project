@@ -3,9 +3,10 @@ import logging
 import gradio as gr
 from fitness_agent import FitnessAgent
 from dotenv import load_dotenv
-from db import init_db, insert_user, insert_login, validate_login, insert_log
+from db import init_db, insert_user, insert_login, validate_login, insert_log, get_user_data
 from gradio_modal import Modal
 import hashlib
+
 
 # Initialize the database when starting the app
 init_db()
@@ -29,6 +30,9 @@ logged_in_email = None  # Or use a session-based storage if available
 
 def get_response(message, history):
     logger.info(f'Chat history: {history}')
+    # Fetch user data
+    # user_info, log_info = get_user_data(logged_in_email)
+    # user_summary = summarize_user_data(user_info, log_info)
 
     formatted_chat_history = [
         {
@@ -130,6 +134,15 @@ def submit_and_close(daily_bp, daily_food):
     submit_health_log(logged_in_email, daily_bp, daily_food)
     return gr.update(visible=False)    
 
+# def summarize_user_data(user_info, log_info):
+#     bmi, activity_level, goal, food_habits = user_info
+#     log_date, bp, recent_food = log_info
+
+#     summary = f"User Profile: BMI= {bmi} Activity Level= {activity_level}, Goal of the user is= {goal}, Food Habits: {food_habits}\n"
+#     summary += f"Meal and Blood Pressure on ({log_date}): BP: {bp}, Meal: {recent_food}"
+#     return summary
+
+
 
 def main():
     with gr.Blocks() as app:
@@ -174,42 +187,25 @@ def main():
             
         # Chatbot Page
         with gr.Column(visible=False) as chatbot_page:
-            with gr.Column(elem_id="chat-container"):
-                gr.HTML(
-                    """
-                    <div class="chat-header">
-                        <img src="https://your-domain.com/fitness-agent-avatar.png" alt="Fitness Agent" class="avatar">
-                        <h3>Fitness Agent</h3>
-                    </div>
-                    """
-                )
-                chat_interface = gr.ChatInterface(
+            chat_interface = gr.ChatInterface(
                 fn=get_response,
-                chatbot=gr.Chatbot(
-                    elem_id="chatbot",
-                    bubble_full_width=False,
-                    avatar_images=("https://your-domain.com/user-avatar.png", "https://your-domain.com/fitness-agent-avatar.png"),
+                title="Fitness Agent",
+                description=(
+                    "Welcome to **Fitness Agent**, your AI-powered virtual coach! 🏋️‍♂️\n\n"
+                    "👋 **What can you ask?**\n"
+                    " - Personalized workout routines\n"
+                    " - Nutrition and meal planning\n"
+                    " - Fitness advice and tips\n\n"
+                    "🤖 Start your fitness journey today!"
                 ),
-                textbox=gr.Textbox(
-                    placeholder="Type your message here...",
-                    container=False,
-                    elem_id="chat-textbox"
-                ),
-                title="",
-                description="",
-                theme="soft",
-                submit_btn="Send"
+                theme="compact",
+                examples=[
+                    "How many calories should I eat to lose weight?",
+                    "What are the best exercises for building muscle?",
+                    "Can you create a weekly workout plan?",
+                    "What foods should I avoid for better health?"
+                ]
             )
-            with gr.Column(elem_id="examples-container"):
-                gr.Examples(
-                    examples=[
-                        "How many calories should I eat to lose weight?",
-                        "What are the best exercises for building muscle?",
-                        "Can you create a weekly workout plan?",
-                        "What foods should I avoid for better health?"
-                    ],
-                    inputs=chat_interface.textbox,
-                )
                 
             with gr.Column(elem_classes="log-button-container"):
                 log_button = gr.Button("Log Health Data", elem_classes="button secondary-button")
@@ -228,98 +224,6 @@ def main():
                 inputs=[daily_bp, daily_food],
                 outputs=[health_log_modal]
             )
- 
-            gr.HTML(
-                """
-                <style>
-                #chat-container {
-                    border-radius: 10px;
-                    overflow: hidden;
-                    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-                }
-                .chat-header {
-                    background-color: #74bcf4;
-                    color: white;
-                    padding: 10px;
-                    display: flex;
-                    align-items: center;
-                }
-                .chat-header img {
-                    width: 40px;
-                    height: 40px;
-                    border-radius: 50%;
-                    margin-right: 10px;
-                }
-                .chat-header h3 {
-                    margin: 0;
-                }
-                #examples-container {
-                    position: relative;
-                    background-color: #F0F0F0;
-                    padding: 10px;
-                    border-top: 1px solid #E5DDD5;
-                }
-                #chatbot {
-                    height: 400px;
-                    overflow-y: auto;
-                    padding: 20px;
-                    background-color: #E5DDD5;
-                }
-                #chatbot .user, #chatbot .bot {
-                    padding: 10px 15px;
-                    border-radius: 20px;
-                    margin-bottom: 10px;
-                    max-width: 70%;
-                    clear: both;
-                }
-                #chatbot .user {
-                    background-color: #DCF8C6;
-                    float: right;
-                }
-                #chatbot .bot {
-                    background-color: white;
-                    float: left;
-                }
-                #chat-textbox {
-                    border: none;
-                    border-top: 1px solid #E5DDD5;
-                    padding: 15px;
-                }
-                #component-0 > div.wrap.svelte-byatnx > div.wrap.svelte-byatnx > div.wrap.svelte-byatnx > div:nth-child(2) {
-                    background-color: #F0F0F0;
-                    border-top: 1px solid #E5DDD5;
-                    padding: 10px;
-                }
-                #component-0 > div.wrap.svelte-byatnx > div.wrap.svelte-byatnx > div.wrap.svelte-byatnx > div:nth-child(2) button {
-                    background-color: #075E54;
-                    color: white;
-                    border: none;
-                    border-radius: 50%;
-                    width: 40px;
-                    height: 40px;
-                    font-size: 18px;
-                    cursor: pointer;
-                    transition: background-color 0.3s;
-                }
-                #component-0 > div.wrap.svelte-byatnx > div.wrap.svelte-byatnx > div.wrap.svelte-byatnx > div:nth-child(2) button:hover {
-                    background-color: #128C7E;
-                }
-                </style>
-                """
-            )
-            gr.HTML("""
-                <style>
-                #chat-container {
-                    position: relative;
-                }
-                .log-button-container {
-                    position: absolute;
-                    bottom: 10px;
-                    left: 10px;
-                    z-index: 1000;
-                }
-                </style>
-                """)
 
         # Button click logic for transitioning between pages
         login_button.click(

@@ -147,91 +147,28 @@ def validate_login(email, password):
     except Exception as e:
         raise Exception(f"Error validating login: {e}")
     
-    
-# def hash_password(password):
-#     return hashlib.sha256(password.encode()).hexdigest()
+def get_user_data(email):
+    conn = sqlite3.connect(DATABASE_PATH)
+    cursor = conn.cursor()
 
-# # Retrieve a user by email
-# def get_user_by_email(email):
-#     """
-#     Fetch a user from the `user_info` table by email.
-#     :param email: Email address of the user to fetch.
-#     :return: User row or None if not found.
-#     """
-#     conn = sqlite3.connect(DATABASE_PATH)
-#     cursor = conn.cursor()
-#     cursor.execute('SELECT * FROM user_info WHERE email = ?', (email,))
-#     user = cursor.fetchone()
-#     conn.close()
-#     return user
+    # Fetch user info
+    cursor.execute('''
+        SELECT height/weight as BMI, activity_level, goal, food
+        FROM user_info
+        WHERE email = ?
+    ''', (email,))
+    user_info = cursor.fetchone()
 
-# def verify_login(email, password):
-#     """Verify user login credentials (email and password) from the `login` table."""
-#     try:
-#         conn = sqlite3.connect(DATABASE_PATH)
-#         cursor = conn.cursor()
+    # Fetch latest log entry
+    cursor.execute('''
+        SELECT date, bp, food
+        FROM log
+        WHERE email = ? AND date = DATE('now', '-1 day')
+        ORDER BY time DESC
+        LIMIT 1
+    ''', (email,))
+    log_info = cursor.fetchone()
 
-#         # Query to check if the email and password match
-#         cursor.execute('''
-#             SELECT name FROM login WHERE email = ? AND password = ?
-#         ''', (email, password))
+    conn.close()
 
-#         result = cursor.fetchone()
-
-#         conn.close()
-
-#         if result:
-#             return True, result[0]  # Return True and user's name if valid
-#         else:
-#             return False, None  # Return False if invalid
-
-#     except Exception as e:
-#         raise Exception(f"Database error: {e}")
-
-
-# def register_user(email, password):
-#     """
-#     Register a new user in the login table.
-#     """
-#     conn = sqlite3.connect(DATABASE_PATH)
-#     cursor = conn.cursor()
-#     try:
-#         # Insert email and hashed password into the login table
-#         cursor.execute('''
-#             INSERT INTO login (email, password)
-#             VALUES (?, ?)
-#         ''', (email, hash_password(password)))
-#         conn.commit()
-#         conn.close()
-#         return True, "Signup successful! Proceed to the profile setup page."
-#     except sqlite3.IntegrityError:
-#         conn.close()
-#         return False, "Email already registered."
-#     except Exception as e:
-#         conn.close()
-#         return False, f"Database error: {e}"
-
-
-
-# def authenticate_user(email, password):
-#     """
-#     Authenticate a user by checking email and password.
-#     Also checks if the user has completed their profile.
-#     """
-#     conn = sqlite3.connect(DATABASE_PATH)
-#     cursor = conn.cursor()
-
-#     # Validate credentials
-#     cursor.execute('SELECT password FROM login WHERE email = ?', (email,))
-#     result = cursor.fetchone()
-
-#     if result and result[0] == hash_password(password):
-#         # Check if profile is complete
-#         cursor.execute('SELECT name FROM user_info WHERE email = ?', (email,))
-#         user = cursor.fetchone()
-#         conn.close()
-#         if user and user[0]:  # If the name is not empty, profile is complete
-#             return True, "Login successful. Profile complete."
-#         return True, "Login successful. Complete your profile."
-#     conn.close()
-#     return False, "Invalid email or password."
+    return user_info, log_info
