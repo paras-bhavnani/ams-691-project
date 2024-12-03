@@ -18,6 +18,7 @@ def init_db():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
             age INTEGER,
+            sex TEXT,
             weight REAL,
             height REAL,
             activity_level TEXT,
@@ -114,9 +115,9 @@ def insert_user(data, email):
             return False, "Email does not exist in the login table."
 
         cursor.execute('''
-            INSERT INTO user_info (email, age, weight, height, activity_level, goal, health, food)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (email, data['age'], data['weight'], data['height'], data['activity_level'], data['goal'], data['health'], data['food']))
+            INSERT INTO user_info (email, age, sex, weight, height, activity_level, goal, health, food)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (email, data['age'], data['sex'], data['weight'], data['height'], data['activity_level'], data['goal'], data['health'], data['food']))
 
         conn.commit()
         conn.close()

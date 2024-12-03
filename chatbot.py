@@ -104,10 +104,11 @@ def handle_signup(name, email, password):
         return gr.update(visible=True), gr.update(visible=False)
 
 
-def handle_profile_submission(email, age, weight, height, activity_level, goal, health, food):
+def handle_profile_submission(email, age, sex, weight, height, activity_level, goal, health, food):
     # Save profile to database
     user_data = {
         "age": age,
+        "sex":sex,
         "weight": weight,
         "height": height,
         "activity_level": activity_level,
@@ -142,29 +143,31 @@ def submit_and_close(daily_bp, daily_food):
 #     summary += f"Meal and Blood Pressure on ({log_date}): BP: {bp}, Meal: {recent_food}"
 #     return summary
 
-
-
 def main():
     with gr.Blocks() as app:
         # Login Page (First Page)
-        with gr.Column(visible=True) as login_page:
+        with gr.Column(visible=True, elem_classes='login_page') as login_page:
             gr.HTML("""
                 <div style="text-align: center; padding-top: 150px;">
-                    <h2>Welcome to FitBot! Please Log In</h2>
+                    <h2>Welcome to DigiDiet! Please Log In</h2>
                     <p>Enter your email and password to log in:</p>
                 </div>
             """)
             email = gr.Textbox(label="Email", placeholder="Enter your email address")
             password = gr.Textbox(label="Password", placeholder="Enter your password", type="password")
             login_button = gr.Button("Log In")
-            login_status = gr.Textbox(label="Status", interactive=False)
+            login_status = gr.Label(
+                value="Not Registered? Sign up Now!",
+                show_label=False, 
+                elem_classes="label-status",
+            )
             signup_button1 = gr.Button("Sign Up")
         
         # Signup Page (Second Page)
-        with gr.Column(visible=False) as signup_page:
+        with gr.Column(visible=False, elem_classes='signup_page') as signup_page:
             gr.HTML("""
                 <div style="text-align: center; padding-top: 150px;">
-                    <h2>Welcome to FitBot! Please Sign Up</h2>
+                    <h2>Welcome to DigiDiet! Please Sign Up</h2>
                     <p>Enter your details to create an account:</p>
                 </div>
             """)
@@ -175,41 +178,44 @@ def main():
             back_to_login_button = gr.Button("Back to Login")
 
         # Profile Page (Third Page)
-        with gr.Column(visible=False) as profile_page:
+        with gr.Column(visible=False, elem_classes='profile_page') as profile_page:
             age = gr.Number(label="Age")
+            sex= gr.Dropdown(['Male','Female','Choose Not to Reveal'],label='Sex')
             weight = gr.Number(label="Weight (kg)")
             height = gr.Number(label="Height (cm)")
-            activity_level = gr.Dropdown(["sedentary", "moderate", "active"], label="Activity Level")
+            activity_level = gr.Dropdown(['sedentary','lightly_active','moderately_active','very_active','super_active'],label="Activity Level")
             goal = gr.Textbox(label="Goal (e.g., weight loss, muscle gain)")
             health = gr.TextArea(label="Input health conditions like Diabetes/ Blood Pressure")
             food = gr.TextArea(label="Mention the food items you like or you generally have")
             submit_button = gr.Button("Submit Profile")
             
         # Chatbot Page
-        with gr.Column(visible=False) as chatbot_page:
+        with gr.Column(visible=False, elem_classes='chatbot_page') as chatbot_page:
             chat_interface = gr.ChatInterface(
                 fn=get_response,
                 title="Fitness Agent",
                 description=(
                     "Welcome to **Fitness Agent**, your AI-powered virtual coach! 🏋️‍♂️\n\n"
-                    "👋 **What can you ask?**\n"
-                    " - Personalized workout routines\n"
-                    " - Nutrition and meal planning\n"
-                    " - Fitness advice and tips\n\n"
+                    # "👋 **What can you ask?**\n"
+                    # " - Personalized workout routines\n"
+                    # " - Nutrition and meal planning\n"
+                    # " - Fitness advice and tips\n\n"
                     "🤖 Start your fitness journey today!"
                 ),
                 theme="compact",
                 examples=[
                     "How many calories should I eat to lose weight?",
-                    "What are the best exercises for building muscle?",
+                    "What are the best exercises for me to build muscle?",
                     "Can you create a weekly workout plan?",
-                    "What foods should I avoid for better health?"
+                    "What foods should I avoid for better health?",
                 ]
             )
-                
+            
+            # Log Button and Health Log Modal (no changes here)
             with gr.Column(elem_classes="log-button-container"):
                 log_button = gr.Button("Log Health Data", elem_classes="button secondary-button")
-            with Modal(visible=False) as health_log_modal:
+            
+            with Modal(visible=False, elem_classes='health_log_modal') as health_log_modal:
                 gr.Markdown("## Daily Health Log")
                 
                 with gr.Tab("Daily Log"):
@@ -218,7 +224,7 @@ def main():
                 
                 modal_close = gr.Button("Close", visible=False)
                 submit_log = gr.Button("Submit Log", elem_classes="button primary-button")
-                
+            
             submit_log.click(
                 fn=submit_and_close,
                 inputs=[daily_bp, daily_food],
@@ -246,14 +252,51 @@ def main():
         )
 
         submit_button.click(
-            fn=lambda age, weight, height, activity_level, goal, health, food: handle_profile_submission(
-                logged_in_email, age, weight, height, activity_level, goal, health, food
+            fn=lambda age,sex, weight, height, activity_level, goal, health, food: handle_profile_submission(
+                logged_in_email, age, sex, weight, height, activity_level, goal, health, food
             ),
-            inputs=[age, weight, height, activity_level, goal, health, food],
+            inputs=[age, sex, weight, height, activity_level, goal, health, food],
             outputs=[profile_page, chatbot_page]
         )
 
         log_button.click(lambda: Modal(visible=True), None, health_log_modal)
+        gr.HTML("""
+            <style>
+            .gradio-container-5-7-1{
+                background-color: floralwhite;
+                # align-items: center;
+            }
+            .label-status .output-class{
+                font-weight:light !important;
+                font-size: 14px !important;
+                padding: 0 !important;
+            }
+            .login_page, .signup_page, .profile_page{
+                margin: 0 auto;
+                width: 50% !important;
+            }
+            .chatbot_page .examples{
+                position: absolute;
+                bottom: 0;
+            }
+            .chatbot_page{
+                width:90% !important;
+                margin: 0 auto;
+            }
+            .chatbot_page .block.svelte-hjh1qu.flex{
+                height:450px !important;
+            }
+            footer.svelte-1rjryqp{
+                display:none !important;
+            }
+            .health_log_modal .block{
+                width: 600px !important;
+            }
+            .chatbot_page .block h1{
+                background-color: wheat;
+            }
+            </style>
+            """)
 
     app.launch()
 
