@@ -1,12 +1,14 @@
-# FitBot: An Advanced Health-Centric Chatbot
+# DigiChat: A Nutrition AI Chatbot
 
-FitBot is an AI-driven chatbot that uses large language models (LLMs) such as GPT-4 by OpenAI. It seamlessly integrates with the Nutrition endpoint from API Ninjas, providing accurate nutritional data and personalized health recommendations.
+DigiChat is a next-generation chatbot designed to deliver precise nutritional insights and health suggestions by leveraging advanced AI models and integrations. It seamlessly integrates with the Nutrition endpoint from API Ninjas, Edamam Meal Planning API, along with mock FitBit, providing accurate nutritional data, meal plans, and personalized health recommendations.
 
 ## Features
-1. **Nutritional Information Retrieval:** Fetches accurate nutritional data of any given food item by leveraging the Nutrition endpoint of API Ninjas.
-2. **Health Calculations:** Computes Basal Metabolic Rate (BMR), Total Daily Energy Expenditure (TDEE), Ideal Body Weight (IBW), and more.
-3. **User-Friendly Interaction:** Features a chat-like interface that is easy to use and interact with.
-4. **Consistent Learning and Improvement:** As the underlying model (GPT-4) continues to learn and improve, so too does FitBot.
+1. **Nutritional Information Retrieval:** Retrieves accurate nutritional data for a wide range of food items using the Nutrition endpoint of API Ninjas.
+2. **Personalized Meal Planning:** Generates customized meal plans based on individual dietary needs, preferences, and health goals through the Edamam Meal Planning API.
+3. **Activity and Health Tracking:** Incorporates mock FitBit data to provide insights on physical activity, sleep patterns, and overall health metrics.
+4. **Health Calculations:** Computes Basal Metabolic Rate (BMR), Total Daily Energy Expenditure (TDEE), Ideal Body Weight (IBW), and more.
+5. **Intelligent Recommendations:** Offers personalized health and nutrition advice by analyzing data from multiple sources.
+6. **User-Friendly Interaction:** Features a chat-like interface that is easy to use and interact with.
 
 ## Setup and Installation
 
@@ -15,8 +17,8 @@ To get FitBot up and running, follow these steps:
 1. **Clone the Repository**
 
    ```bash
-   git clone https://github.com/[YourUsername]/FitBot.git
-   cd FitBot
+   git clone https://github.com/[YourUsername]/ams-691-project.git
+   cd DigiChat
 
 2. **Setup Virtual Environment (Optional)**
 
@@ -48,7 +50,7 @@ Once the chatbot is up and running, you can start asking queries. Here's an exam
    What is the TDEE of a 30-year-old man, who is 180 cm tall, weighs 80 kg, and exercises 3 times a week?
    ```
 
-FitBot will generate a meal plan based on the information provided and also inform the person's BMI.
+DigiChat will generate a meal plan based on the information provided and also inform the person's BMI.
 
 ## Support
 
@@ -56,4 +58,4 @@ If you encounter any issues or have any questions about the project, feel free t
 
 ## License
 
-FitBot is open-source software licensed under the MIT license.
+DigiChat is open-source software licensed under the MIT license.
