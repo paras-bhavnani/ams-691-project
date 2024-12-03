@@ -3,13 +3,15 @@ import requests
 from agent.agents import Agent
 
 class FitnessAgent:
-    def __init__(self, openai_api_key: str, nut_api_key: str):
+    def __init__(self, openai_api_key: str, nut_api_key: str, edamam_app_id: str, edmam_app_key: str):
         self.openai_api_key = openai_api_key
         self.nut_api_key = nut_api_key
+        self.edamam_app_id = edamam_app_id
+        self.edmam_app_key = edmam_app_key
 
         self.agent = Agent(
             openai_api_key=self.openai_api_key,
-            functions=[self.get_nutritional_info, self.calculate_bmr, self.calculate_tdee, self.calculate_ibw, self.calculate_bmi, self.calculate_calories_to_lose_weight]#, self.handle_user_activity_data]
+            functions=[self.get_nutritional_info, self.calculate_bmr, self.calculate_tdee, self.calculate_ibw, self.calculate_bmi, self.calculate_calories_to_lose_weight, self.get_meal_plan]#, self.handle_user_activity_data]
         )
 
     def get_nutritional_info(self, query: str) -> dict:
@@ -140,6 +142,30 @@ class FitnessAgent:
         except requests.RequestException as e:
             # logging.error(f"Error fetching Fitbit data: {e}")
             return None
+        
+    def get_meal_plan(self, calories: int, diet: str = None, health: str = None) -> dict:
+        """
+        Fetch a personalized meal plan based on user requirements.
+        
+        :param calories: Daily calorie goal
+        :param diet: Optional diet type (e.g., 'balanced', 'low-fat', 'low-carb')
+        :param health: Optional health label (e.g., 'vegan', 'vegetarian', 'peanut-free')
+        :return: A dictionary containing the meal plan
+        """
+        base_url = 'https://api.edamam.com/api/meal-planner/v1'
+        params = {
+            'app_id': self.edamam_app_id,
+            'app_key': self.edmam_app_key,
+            'calories': calories,
+            'diet': diet,
+            'health': health
+        }
+        
+        response = requests.get(base_url, params=params)
+        if response.status_code == 200:
+            return response.json()
+        else:
+            return {"Error": response.status_code, "Message": response.text}
         
     def ask(self, question: str):
         response = self.agent.ask(question)

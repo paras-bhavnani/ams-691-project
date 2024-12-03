@@ -32,9 +32,11 @@ load_dotenv('.env.list')
 # Now you can access the variables using os.environ
 openai_api_key = os.getenv('OPENAI_API_KEY')
 nut_api_key = os.getenv('NUT_API_KEY')
+edmam_app_id = os.getenv('EDAMAM_APP_ID')
+edmam_app_key = os.getenv('EDAMAM_APP_KEY')
 
 # Instantiate FitnessAgent here so it remains open
-fitness_agent = FitnessAgent(openai_api_key, nut_api_key)
+fitness_agent = FitnessAgent(openai_api_key, nut_api_key, edmam_app_id, edmam_app_key)
 
 # Global variable to hold the logged-in user's email
 logged_in_email = None  # Or use a session-based storage if available
